@@ -1,31 +1,45 @@
-from .aresta import Aresta
-
 class Grafo:
-    def __init__(self, rotulos, listaDeAdj, peso_mapper, listaDePesos):
-        # Lista de rotulos
-        self.__rotulos = rotulos
-        # Lista de objetos arestas
-        self.__listaDeAdj = listaDeAdj # para cada vertice há uma lista de vizinhos
-        # mapeia o peso de cada aresta
-        peso_mapper(self.__listaDeAdj)
-        self.__listaDePesos = listaDePesos # igual a lista adjacencia, mas com os pesos das arestas
+    def __init__(self, arquivo):
+        # Como o indice dos vertices começa em 1, colocamos null na posição 0 das seguintes listas
+        self.__rotulos = [None] # Lista de rotulos
+        self.__listaDeAdj = [[None]] # para cada vertice há uma lista de vizinhos
+        self.__listaDePesos = [[None]] # igual a lista adjacencia, mas com os pesos das arestas
+        self.__arestas = []
+
+        self.__ler(arquivo)
+        
+    
+    # carregar um grafo a partir de um arquivo no formato especificado
+    def __ler(self, caminho_arquivo): #recebe o nome do arquivo
+        with open(caminho_arquivo, 'r') as arquivo:
+            num_vertices = int(arquivo.readline().split(' ')[1])
+            for i in range(num_vertices):
+                self.__rotulos.append(arquivo.readline().split(' ')[1])
+                self.__listaDeAdj.append([])
+                self.__listaDePesos.append([])
+            
+            arquivo.readline() # le "*edges"
+            for linha in arquivo:
+                secoes = linha.split(' ')
+                indice = int(secoes[0])
+                vertice = int(secoes[1])
+                peso = float(secoes[2])
+
+                self.__listaDeAdj[indice].append(vertice)
+                self.__listaDePesos[indice].append(peso)
+                self.__arestas.append((indice, vertice, peso))
 
     # Retorna quantidade de vertices
     def qtdVertices(self):
-        return len(self.__rotulos)
+        return len(self.__rotulos)-1
     
     # Retorna a quantidade de arestas
     def qtdArestas(self):
-        quantidade = 0
-        for i in range(self.qtdVertices()):
-            for adj in self.__listaDeAdj[i]:
-                if(adj >= i):
-                    quantidade+=1
-        return quantidade
+        return len(self.__arestas)
 
     # Retorna o grau do vertice v
-    def grau(self, v): # TODO:
-        pass
+    def grau(self, v):
+        return len(self.__listaDeAdj[v])
     
     # Retorna o rotulo do vertice v
     def rotulo(self, v):
@@ -45,12 +59,9 @@ class Grafo:
     # se {u, v} pertence à E, retorna o peso da aresta {u,v}; 
     # se não existir, retorna um valor  infinito positvo(maior ponto flutuante)
     def peso(self, u, v):
-        if(self.haAresta(u,v)):
-            for i in len(self.__listaDeAdj[u]):
-                if(self.__listaDeAdj[u][i] == v):
+        if self.haAresta(u,v):
+            for i in range(len(self.__listaDeAdj[u])):
+                if self.__listaDeAdj[u][i] == v:
                     return self.__listaDePesos[u][i]
-
-    # carregar um grafo a partir de um arquivo no formato especificado
-    def ler(self, arquivo):
-        pass
-    
+        else:
+            return float('inf')
