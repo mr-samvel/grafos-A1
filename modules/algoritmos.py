@@ -1,4 +1,5 @@
 from .grafo import Grafo
+import heapq
 
 def busca_em_largura(grafo: Grafo, s: int):
     fila = [s]
@@ -28,34 +29,34 @@ def busca_em_largura(grafo: Grafo, s: int):
 
 
 def dijkstra(grafo: Grafo, s: int):
-    def min_dist(dists, visitados):
-        local_dists = dists
-        min_index = None
-        while not min_index:
-            min_index = local_dists.index(min(local_dists))
-            if min_index not in visitados:
-                return min_index
-            local_dists.pop(min_index)
-
+    def cria_fila(dists):
+        fila = [(dists[s], s)]
+        heapq.heapify(fila)
+        return fila
+    
     n_vertices = grafo.qtdVertices()
+    
     dists = [float('inf')] * (n_vertices+1)
     dists[s] = 0
-    caminho_percorrido = [[]] * (n_vertices+1)
-    caminho_percorrido[s] = [s]
-    visitados = []
-    while len(visitados) != n_vertices:
-        v = min_dist(dists, visitados)
-        print(v)
-        visitados.append(v)
-        for z in grafo.vizinhos(v):
-            if dists[z] > dists[v] + grafo.peso(v,z):
-                dists[z] = dists[v] + grafo.peso(v,z)
-                caminho_percorrido[z] = caminho_percorrido[z] + [v]
-        print("dists", dists)
-        print("caminho percorrido", caminho_percorrido)
-        print("visitados", visitados)
-
+    predecessores = {i : i for i in range(n_vertices+1)}
+    predecessores[s] = s
+    fila = cria_fila(dists)
+    while fila:
+        (d,u) = heapq.heappop(fila)
+        for v in grafo.vizinhos(u):
+            novo_caminho = dists[u] + grafo.peso(u, v)
+            if dists[v] > novo_caminho:
+                dists[v] = novo_caminho
+                predecessores[v] = u
+                heapq.heappush(fila, (dists[v], v))
 
     # printar resposta
+    def caminho_percorrido(v):
+        caminho = [v]
+        while v != s and v != predecessores[v]:
+            caminho = [predecessores[v]] + caminho
+            v = predecessores[v]
+        return caminho
+
     for v in range(1, len(dists)):
-            print(str(v) + ": " + str(caminho_percorrido[v])[1:-1] + "; d=" + str(dists[v]))    
+            print(str(v) + ": " + str(caminho_percorrido(v))[1:-1] + "; d=" + str(dists[v]))
